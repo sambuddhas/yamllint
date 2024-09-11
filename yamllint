@@ -1,0 +1,150 @@
+code 
+1. Create the Rule Class
+In the src/main/java directory, create a new file, for example, KafkaTopicRule.java.
+
+package com.example.yamllint.rules;
+
+import com.example.yamllint.Rule;
+import org.yaml.snakeyaml.Yaml;
+
+import java.util.Map;
+
+public class KafkaTopicRule extends Rule {
+    @Override
+    public void apply() {
+        Yaml yaml = new Yaml();
+        // Assuming the YAML content is available
+        Map<String, Object> yamlContent = yaml.load(getYamlContent());
+        checkKafkaTopics(yamlContent);
+    }
+
+    private void checkKafkaTopics(Map<String, Object> yamlContent) {
+        // Traverse the YAML structure to find Kafka topic names
+        // This is an example, adjust the traversal based on the YAML structure
+        if (yamlContent.containsKey("kafka_topics")) {
+            List<String> topics = (List<String>) yamlContent.get("kafka_topics");
+            for (String topic : topics) {
+                if (!topic.startsWith("com.")) {
+                    reportIssue("Topic name '" + topic + "' does not start with 'com.'");
+                }
+            }
+        }
+    }
+
+    // Placeholder method to get YAML content
+    private String getYamlContent() {
+        // Implementation to get YAML content from the file
+        return "";
+    }
+
+    // Placeholder method to report issues
+    private void reportIssue(String message) {
+        // Implementation to report linting issues
+        System.out.println(message);
+    }
+}
+
+
+
+2. Register the Rule
+Update the rule registration file (e.g., RulesRegistry.java or equivalent) to include your new rule.
+
+public class RulesRegistry {
+    static {
+        registerRule("kafkaTopicRule", new KafkaTopicRule());
+    }
+}
+
+
+
+
+To implement a rule that checks if Kafka topic names in a YAML file start with "com.", follow these steps:
+
+Step-by-Step Implementation:
+Define the Rule Class:
+
+Create a new Java class that will implement the rule for checking Kafka topic names.
+Integrate the Rule with the Existing System:
+
+Register your new rule so that it gets picked up by the linter.
+Write Tests:
+
+Ensure your rule is tested properly.
+Detailed Steps:
+1. Create the Rule Class
+In the src/main/java directory, create a new file, for example, KafkaTopicRule.java.
+
+java
+Copy code
+package com.example.yamllint.rules;
+
+import com.example.yamllint.Rule;
+import org.yaml.snakeyaml.Yaml;
+
+import java.util.Map;
+
+public class KafkaTopicRule extends Rule {
+    @Override
+    public void apply() {
+        Yaml yaml = new Yaml();
+        // Assuming the YAML content is available
+        Map<String, Object> yamlContent = yaml.load(getYamlContent());
+        checkKafkaTopics(yamlContent);
+    }
+
+    private void checkKafkaTopics(Map<String, Object> yamlContent) {
+        // Traverse the YAML structure to find Kafka topic names
+        // This is an example, adjust the traversal based on the YAML structure
+        if (yamlContent.containsKey("kafka_topics")) {
+            List<String> topics = (List<String>) yamlContent.get("kafka_topics");
+            for (String topic : topics) {
+                if (!topic.startsWith("com.")) {
+                    reportIssue("Topic name '" + topic + "' does not start with 'com.'");
+                }
+            }
+        }
+    }
+
+    // Placeholder method to get YAML content
+    private String getYamlContent() {
+        // Implementation to get YAML content from the file
+        return "";
+    }
+
+    // Placeholder method to report issues
+    private void reportIssue(String message) {
+        // Implementation to report linting issues
+        System.out.println(message);
+    }
+}
+2. Register the Rule
+Update the rule registration file (e.g., RulesRegistry.java or equivalent) to include your new rule.
+
+java
+Copy code
+public class RulesRegistry {
+    static {
+        registerRule("kafkaTopicRule", new KafkaTopicRule());
+    }
+}
+
+
+3. Write Tests
+In the src/test/java directory, create a test class to ensure your rule works as expected. For example, KafkaTopicRuleTest.java.
+package com.example.yamllint.rules;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class KafkaTopicRuleTest {
+    @Test
+    public void testKafkaTopicRule() {
+        KafkaTopicRule rule = new KafkaTopicRule();
+        
+        // Add test cases
+        // Use assertions to verify the behavior of the rule
+    }
+}
+
+
+
