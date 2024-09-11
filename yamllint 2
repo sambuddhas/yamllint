@@ -1,0 +1,164 @@
+Certainly! Let's go through the process of adding your custom rule step by step, including the necessary code, modifications, and test cases.
+
+1. Implement the Custom Rule
+File: src/main/java/com/example/yamllint/rules/CustomKafkaTopicRule.java
+
+package com.example.yamllint.rules;
+
+import com.example.yamllint.Rule;
+import org.yaml.snakeyaml.Yaml;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.Map;
+
+public class CustomKafkaTopicRule extends Rule {
+    private String yamlFilePath;
+
+    // Constructor to accept the file path
+    public CustomKafkaTopicRule(String yamlFilePath) {
+        this.yamlFilePath = yamlFilePath;
+    }
+
+    @Override
+    public void apply() {
+        Yaml yaml = new Yaml();
+        try (InputStream inputStream = new FileInputStream(yamlFilePath)) {
+            // Load YAML content from the file
+            Map<String, Object> yamlContent = yaml.load(inputStream);
+            checkKafkaTopics(yamlContent);
+        } catch (FileNotFoundException e) {
+            System.err.println("YAML file not found: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error reading YAML file: " + e.getMessage());
+        }
+    }
+
+    private void checkKafkaTopics(Map<String, Object> yamlContent) {
+        if (yamlContent.containsKey("topicsAndRole")) {
+            Map<String, Object> topicsAndRole = (Map<String, Object>) yamlContent.get("topicsAndRole");
+            for (String topic : topicsAndRole.keySet()) {
+                if (!topic.startsWith("com.")) {
+                    reportIssue("Topic name '" + topic + "' does not start with 'com.'");
+                }
+            }
+        } else {
+            reportIssue("No 'topicsAndRole' section found in YAML.");
+        }
+    }
+
+    private void reportIssue(String message) {
+        // Implementation to report linting issues
+        System.out.println(message);
+    }
+}
+
+
+2. Register the Custom Rule
+File: src/main/java/com/example/yamllint/rules/RulesRegistry.java
+
+package com.example.yamllint.rules;
+
+import com.example.yamllint.Rule;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+public class RulesRegistry {
+
+    private static final Map<String, Rule> rules = new HashMap<>();
+
+    static {
+        // Register existing rules
+        rules.put("existingRule1", new ExistingRule1());
+        rules.put("existingRule2", new ExistingRule2());
+
+        // Register your new custom rule
+        // Provide the path to the YAML file or configure it dynamically
+        rules.put("customKafkaTopicRule", new CustomKafkaTopicRule("path/to/your/yaml/file.yaml"));
+    }
+
+    public static Rule getRuleByName(String ruleName) {
+        return rules.get(ruleName);
+    }
+
+    public static Collection<Rule> getAllRules() {
+        return rules.values();
+    }
+}
+
+3. Update Maven Plugin Configuration
+File: pom.xml
+
+Add or update the Maven plugin configuration to ensure it applies your custom rule. This example assumes the Maven plugin configuration is managed through the pom.xml:
+<plugin>
+    <groupId>com.example</groupId>
+    <artifactId>yamllint-maven-plugin</artifactId>
+    <version>1.0.0</version>
+    <executions>
+        <execution>
+            <goals>
+                <goal>lint</goal>
+            </goals>
+        </execution>
+    </executions>
+    <configuration>
+        <rules>
+            <rule>customKafkaTopicRule</rule>
+        </rules>
+    </configuration>
+</plugin>
+
+
+4. Write Test Cases
+File: src/test/java/com/example/yamllint/rules/CustomKafkaTopicRuleTest.java
+package com.example.yamllint.rules;
+
+import org.junit.jupiter.api.Test;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class CustomKafkaTopicRuleTest {
+
+    @Test
+    public void testKafkaTopicRule() throws IOException {
+        // Create a temporary YAML file for testing
+        String testYamlPath = "src/test/resources/test.yaml";
+        try (FileWriter writer = new FileWriter(testYamlPath)) {
+            writer.write("topicsAndRole:\n");
+            writer.write("  com.sam.account.brokerage:\n");
+            writer.write("    operation: 'CREATE'\n");
+            writer.write("  invalid_topic:\n");
+            writer.write("    operation: 'CREATE'\n");
+        }
+
+        CustomKafkaTopicRule rule = new CustomKafkaTopicRule(testYamlPath);
+        
+        // Capture the output of the rule
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        rule.apply();
+        
+        // Check for the expected output
+        String output = outContent.toString().trim();
+        assertTrue(output.contains("Topic name 'invalid_topic' does not start with 'com.'"), "Expected issue not found in output.");
+
+        // Clean up
+        Files.deleteIfExists(Paths.get(testYamlPath));
+    }
+}
+
+Summary
+Custom Rule Implementation: Implement CustomKafkaTopicRule to check Kafka topic names.
+Register the Rule: Update RulesRegistry to include your new rule.
+Update Maven Configuration: Ensure your Maven plugin configuration includes the new rule.
+Write and Run Tests: Test your rule to confirm it correctly identifies issues.
+Make sure to replace "path/to/your/yaml/file.yaml" with the actual path to your YAML file or adapt it to handle dynamic paths as needed. Adjust the paths and configuration based on your specific project setup. Let me know if you need further modifications or explanations!
