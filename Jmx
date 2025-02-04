@@ -1,0 +1,11 @@
+---
+lowercaseOutputName: true
+excludeObjectNames:
+  - "kafka.server:type=ControllerMutation,client-id=*"
+  - "kafka.server:type=Request,client-id=*"
+  - "kafka.server:type=ControllerMutation,name=mutation_tokens"
+  - "kafka.server:type=ControllerMutation,name=mutation_rate"
+  - "kafka.server:type=ControllerMutation,name=mutation_throttle_time"
+  - "kafka.server:type=RequestMetrics,name=request_tokens"
+  - "kafka.server:type=RequestMetrics,name=request_time"
+  - "kafka.server:type=RequestMetrics,name=request_throttle_time"
